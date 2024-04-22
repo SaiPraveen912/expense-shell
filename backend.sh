@@ -61,6 +61,7 @@ VALIDATE $? "Downloading backend code"
 
 
 cd /app
+rm -rf /app/* # delete all the content in that file this is usefull if old code is present or running second time
 unzip /tmp/backend.zip &>>$LOGFILE
 VALIDATE $? "Extracted backend code"
 
