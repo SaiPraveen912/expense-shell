@@ -8,6 +8,8 @@ R="\e[31m" # red color symbol
 G="\e[32m" # green color symbol
 Y="\e[33m"
 N="\e[0m"  # normal color symbol
+echo "Please enter DB password:"
+read -s mysql_root_password
 
 
 VALIDATE(){
@@ -43,10 +45,10 @@ VALIDATE $? "Starting MySQL Server"
 # VALIDATE $? "Setting up root password"
 
 #Below code will be useful for idempotent nature
-mysql -h db.daws-78s.cloud -uroot -pExpenseApp@1 -e 'show databases;' &>>$LOGFILE
+mysql -h db.daws-78s.cloud -uroot -p${mysql_root_password} -e 'show databases;' &>>$LOGFILE
 if [ $? -ne 0 ]
 then 
-    mysql_secure_installation --set-root-pass ExpenseApp@1 &>>$LOGFILE
+    mysql_secure_installation --set-root-pass ${mysql_root_password} &>>$LOGFILE
     VALIDATE $? "MySQL root password setup"
 else
     echo -e "MySQL root password is already setup...$Y SKIPPING $N"
