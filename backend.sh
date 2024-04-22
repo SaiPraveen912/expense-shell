@@ -8,6 +8,8 @@ R="\e[31m" # red color symbol
 G="\e[32m" # green color symbol
 Y="\e[33m"
 N="\e[0m"  # normal color symbol
+echo "Please enter DB password:"
+read -s mysql_root_password
 
 
 VALIDATE(){
@@ -50,18 +52,40 @@ else
 fi
 
 
-mkdir -p /app  # -p if there is /app dierectory it skips otherwise it will create
+mkdir -p /app &>>$LOGFILE # -p if there is /app dierectory it skips otherwise it will create
 VALIDATE $? "Creating app dierectory"
 
 
-curl -o /tmp/backend.zip https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip
+curl -o /tmp/backend.zip https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip &>>$LOGFILE
 VALIDATE $? "Downloading backend code"
 
 
 cd /app
-unzip /tmp/backend.zip
+unzip /tmp/backend.zip &>>$LOGFILE
 VALIDATE $? "Extracted backend code"
 
-npm install
+npm install &>>$LOGFILE
 VALIDATE $? "Installing nodejs dependencies"
 
+cp /home/ec2-user/expense-shell/backend.service /etc/systemd/system/backend.service &>>$LOGFILE
+VALIDATE $? "Copied backend service"
+
+
+systemctl daemon-reload &>>$LOGFILE
+VALIDATE $? "Deamon Reload"
+
+systemctl start backend &>>$LOGFILE
+VALIDATE $? "Starting backend"
+
+systemctl enable backend &>>$LOGFILE
+VALIDATE $? "Enabling backend"
+
+dnf install mysql -y &>>$LOGFILE
+VALIDATE $? "Installing MySQL Client"
+
+
+mysql -h db.daws-78s.cloud -uroot -p${mysql_root_password} < /app/schema/backend.sql &>>$LOGFILE
+VALIDATE $? "Schema loading"
+
+systemctl restart backend &>>$LOGFILE
+VALIDATE $? "Restarting Backend"
